@@ -16,7 +16,7 @@ namespace SimulatedDevice
         static string device_id = "andytFirstDevice";
         static void Main(string[] args)
         {
-            Console.WriteLine("Simulated Device to send 5 sample messages to IoT Hub\n");
+            Console.WriteLine("Simulated Device to send Alarm and Performance messages to IoT Hub\n");
             deviceClient = DeviceClient.Create(iotHubUri, new DeviceAuthenticationWithRegistrySymmetricKey(device_id, deviceKey), TransportType.Mqtt);
 
             string path = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
