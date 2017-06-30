@@ -1,0 +1,22 @@
+syntax = "proto3";
+package com.otis;
+import "google/protobuf/wrappers.proto";
+
+import 'rem_alarm.proto';
+import 'rem_rdo.proto';
+import 'pdata.proto';
+import 'rtd_message.proto';
+
+message RemMessage {
+    google.protobuf.UInt32Value  device_id       = 1;     // Needed if we are receiving alarms from other devices on the CAN bus
+    google.protobuf.UInt32Value  device_type     = 2;     // Needed if we are receiving alarms from other devices on the CAN bus
+    string                       version_id      = 3;     // SCN of the device generating the message.
+    google.protobuf.UInt64Value  transaction_id  = 4;
+    google.protobuf.UInt32Value  transmit_count  = 5;
+    google.protobuf.UInt32Value  retry_time      = 6;
+    AlarmMessage                 alarm           = 7;  // Functioncode 24'hex
+    com.otis.RdoMessage write_rdo                = 8;
+    com.otis.RdoMessage read_rdo                 = 9; // Function code = 0x0A
+    repeated com.otis.pdata.PerformanceData     performanceData = 10; //
+    RtdMessage          rtd             = 11;
+}

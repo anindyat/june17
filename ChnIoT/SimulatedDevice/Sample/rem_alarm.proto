@@ -1,0 +1,376 @@
+// Copyright 2016-2017 Otis Elevator Co.
+
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+// import 'rem_message.proto';
+
+message AlarmMessage
+{
+    AlarmCodeEnum               alarm_code        = 1;
+    google.protobuf.Timestamp   alarm_timestamp   = 2;
+    AlarmRDOList                rdos              = 3;
+    RemEventMessage             rem_event         = 4;
+    CarStatusSnapshotMessage    css               = 5;
+    CarStatusTraceMessage       cst               = 6;
+    google.protobuf.UInt32Value unit_id           = 7;
+}
+
+message AlarmFloorNumber {  // Alarm Floor Number
+    uint32 alarm_floor_number = 1;
+}
+
+message TravelDirection {
+    enum TravelDirectionEnum {
+        Unknown = 0;
+        Down = 1;
+        Up = 2;
+    }
+    TravelDirectionEnum direction = 1;
+}
+
+//RFS or OOS
+message Service_Reason {
+    // maybe enum?
+    google.protobuf.UInt32Value reason = 1;
+}
+
+enum Service_SubsystemsEnum {
+    UNKNOWN = 0;
+    OCSS = 1;
+    DRIVE = 2;
+    FDOOR = 3;
+    RDOOR = 4;
+    SPBC = 5;
+    LWB = 7;
+    ARO = 9;
+    MCSS = 10;
+}
+
+enum Service_SubsystemsTypeEnum {
+    OOS = 0;
+    RFS = 1;
+}
+
+message Service_Subsystems {
+    // This message is for OOS Informations . All OOS information needs to come from the same 'source'
+    // aka. RDO2040 to RDO2044 or RD02070 to RDO2071
+    google.protobuf.UInt32Value index = 1;
+    Service_SubsystemsTypeEnum  type  = 2;                // OOS or RFS
+    Service_Reason              service_reason    = 2040; // RD0= 2040, 2050, 2060, 2070
+    Service_SubsystemsEnum      service_subsystem = 2041; // RD0= 2041, 2051, 2061, 2071
+    string                      service_scn       = 2042; // RD0= 2042, 2052, 2062, 2072
+    google.protobuf.Timestamp   timestamp         = 2043; // RD0= 2043, 2053, 2063, 2073
+    bytes                       service_tick_time = 2044; // RD0= 2044, 2054, 2064, 2074
+}
+
+message PhaseOfRun {
+    google.protobuf.UInt32Value drive_state = 1;
+}
+
+enum DoorStateEnum {
+    NotAvailable      = 0;
+    DoorOpen          = 1; //  ][
+    DoorClosing       = 2; //  ><
+    DoorClosed        = 3; //  []
+    DoorOpening       = 4; //  <>
+    DoorMaintanceMode = 5; //  ||
+}
+
+// Will be used if there is a new RDO.
+// Data for Existing RDOs will go into AlarmRDOList
+message GenericAlarmRdo {
+    google.protobuf.UInt32Value   id     = 1;
+    //google.protobuf.UInt32Value length = 2;
+    bytes                         data   = 3;
+}
+
+message RemAddress {
+    //TODO: country/region should probably be enums
+    google.protobuf.UInt32Value nms      = 1;
+    google.protobuf.UInt32Value nms_id   = 2;
+    google.protobuf.UInt32Value id       = 3;
+    google.protobuf.UInt32Value type     = 4;
+}
+
+message AlarmRDOList
+{
+    repeated GenericAlarmRdo     generic_alarm_rdo                      = 1;
+    repeated Service_Subsystems  subsystems                             = 2;
+    RemAddress                   alarm_owner                            = 2000;
+    AlarmFloorNumber             alarm_floor_number                     = 2001; // RDO 2001
+    TravelDirection              travel_direction                       = 2002; // RDO 2002
+    bool                         voice_connection_request               = 2003; // RDO 2003
+
+    DoorStateEnum                upper_front_door_state                 = 2139;
+    DoorStateEnum                upper_rear_door_state                  = 2140;
+
+    google.protobuf.BoolValue    door_zone_indication                   = 2004;
+    google.protobuf.UInt32Value  controller_type_ii_threshold_exceeded  = 2005;
+    google.protobuf.UInt32Value  gdi_point_number                       = 2008;
+    google.protobuf.BoolValue    communication_validity                 = 2009;
+    google.protobuf.UInt32Value  oosrem                                 = 2010;
+    google.protobuf.UInt32Value  load_state                             = 2011;
+    google.protobuf.UInt32Value  serial_controller_type                 = 2012;
+    google.protobuf.UInt32Value  icd_version_number                     = 2013;
+    google.protobuf.UInt32Value  crc_flash_config                       = 2014;
+    google.protobuf.UInt32Value  inops_occurrence_count                 = 2015;
+    google.protobuf.UInt32Value  inops_duration                         = 2016;
+    bytes                        controller_alarm_data                  = 2017;
+    bytes                        serial_event_data                      = 2018;
+    bytes                        source_address                         = 2019;
+    google.protobuf.UInt32Value  indication_task_failed                 = 2020;
+    string                       failed_file_system                     = 2021;
+    google.protobuf.UInt32Value  failed_device                          = 2023;
+    google.protobuf.UInt32Value  hmm_alarm_alert_subtype                = 2024;
+    google.protobuf.UInt32Value  power_on_diagnostic_results            = 2028;
+    google.protobuf.UInt32Value  rmh_input_number                       = 2029;
+    google.protobuf.UInt32Value  serial_controller_mode                 = 2030;
+    google.protobuf.UInt32Value  dcl_input_state                        = 2031;
+    google.protobuf.BoolValue    possible_door_lock_problem             = 2032;
+    google.protobuf.UInt32Value  occ_service_state                      = 2034;
+    google.protobuf.Int32Value   distance_above_dl                      = 2035;
+    bytes                        aot_time                               = 2036;
+
+    PhaseOfRun                   drive_state                            = 2120; // RD0= 2120
+    DoorStateEnum                front_door_state                       = 2121;
+    DoorStateEnum                rear_door_state                        = 2122;
+    google.protobuf.UInt32Value  load_weight                            = 2123;
+    google.protobuf.UInt32Value  alarm_oos_id                           = 2125;
+
+    string                       inspection_mode                        = 2126;
+    string                       oad_status                             = 2130;
+    string                       ctrl_status                            = 2131;
+}
+
+message RemEventMessage {
+    google.protobuf.Int32Value eventid = 1;
+}
+
+message CSSEvent {
+    google.protobuf.Int32Value css  = 1;
+    google.protobuf.Int32Value curr = 2;
+}
+
+message CarStatusSnapshotMessage {
+    repeated CSSEvent events = 1;
+}
+
+message CSTEvent {
+    google.protobuf.UInt32Value  cst_id             = 1;
+    google.protobuf.UInt32Value  current_cst_value  = 2;
+    google.protobuf.UInt32Value  previous_cst_value = 3;
+    google.protobuf.Int32Value   millimeter_offset  = 4;
+    google.protobuf.UInt32Value  current_floor      = 5;
+    google.protobuf.Timestamp    timestamp          = 6;
+}
+
+message CarStatusTraceMessage {
+    repeated CSTEvent events = 1;
+}
+
+enum AlarmCodeEnum {
+    REM_CLEAR                              =   0;     //Alarm Condition Corrected.
+    REM_ALARM_POR                          =   1;     //REM Powered On - AC Power Applied
+    REM_ALARM_POR_1                        =   2;     //RMH Processor Exception Condition
+    REM_ALARM_POR_2                        =   3;     //TOC Powered On
+    REM_ALARM_POR_3                        =   4;     //Commanded Hard Reset
+    REM_ALARM_POR_4                        =   5;     //Commanded Soft Reset (from Config. or download)
+    REM_ALARM_POR_5                        =   6;     //Unexpected Watchdog Trip
+    REM_ALARM_POR_6                        =   7;     //Expected Watchdog Trip Due To Diagnostics
+    REM_ALARM_POR_7                        =   8;     //Power Reset due to Software detected FATAL error.
+    REM_ALARM_POR_8                        =   9;     //Power Reset due to RMH left in Configuration Mode (forced out of Configuration mode)
+    REM_ALARM_CONTROLLER_CONFIG_COMPLETE   =  10;     //Sent by controller after Write configuration is complete
+    REM_ALARM_TRAPPED_PASSENGER_RELEASED   =  11;     //Clear button on OAD pushed by Onsite Mechanic
+    REM_ALARM_UNOCC_ALARM_PWRFAIL          =1000;     //INOP 1   Elevator Power Signal Failure
+    REM_ALARM_UNOCC_ALARM_DOORCLOSE        =1001;     //INOP 2   Hoistway Door Lock Signal Failure
+    REM_ALARM_UNOCC_ALARM_SLOWBRK          =1002;     //INOP 3   Brake/Valve Signal Failure
+    REM_ALARM_UNOCC_ALARM_DOOROPEN         =1003;     //INOP 4   Car Door Signal Failure
+    REM_ALARM_UNOCC_ALARM_HOISTOPEN        =1004;     //INOP 5   Car Door Open - H/W Door Closed
+    REM_ALARM_UNOCC_ALARM_RTL              =1005;     //INOP 6   Brake Failed to Drop
+    REM_ALARM_UNOCC_ALARM_SAFTY            =1006;     //INOP 7   Safety Chain Failure
+    REM_ALARM_UNOCC_ALARM_SAFTY_IDLE       =1007;     //INOP 8   Safety Chain Failure From CIS
+    REM_ALARM_UNOCC_ALARM_UNOCC9           =1008;     //INOP 9   Detected Power Failure
+    REM_ALARM_ADS_OPEN_TOO_LONG            =1009;     //ADS signal is active for an excessive amount of time
+    REM_SHUTDOWN_DRIVE                     =1101;     //Shutdown - DRIVE
+    REM_SHUTDOWN_DRIVE_ENCODER             =1102;     //Shutdown - DRIVE ENCODER
+    REM_SHUTDOWN_CONTACTOR                 =1103;     //Shutdown - CONTACTOR
+    REM_SHUTDOWN_POSITION_REF              =1104;     //Shutdown - POSITION REF
+    REM_SHUTDOWN_BRAKE                     =1105;     //Shutdown - BRAKE
+    REM_SHUTDOWN_LOAD                      =1106;     //Shutdown - LOAD
+    REM_SHUTDOWN_DOOR                      =1107;     //Shutdown - DOOR
+    REM_SHUTDOWN_DOOR_ENCODER              =1108;     //Shutdown - DOOR ENCODER
+    REM_SHUTDOWN_RESCUE_UNIT               =1109;     //Shutdown - RESCUE UNIT
+    REM_SHUTDOWN_RESCUE_ENCODER            =1110;     //Shutdown - RESCUE ENCODER
+    REM_SHUTDOWN_SAFETY_CHAIN              =1111;     //Shutdown - SAFETY CHAIN
+    REM_SHUTDOWN_CONTROLLER                =1112;     //Shutdown - CONTROLLER
+    REM_SHUTDOWN_CAR                       =1113;     //Shutdown - CAR
+    REM_SHUTDOWN_RSL                       =1114;     //Shutdown - RSL
+    REM_SHUTDOWN_CAN_BUS                   =1115;     //Shutdown - CAN BUS
+    REM_SHUTDOWN_SYSTEM                    =1116;     //Shutdown - SYSTEM
+    REM_SHUTDOWN_OPERATIONAL               =1117;     //Shutdown - OPERATIONAL  10/3/08 - Requested by M. Higashide.
+    REM_ALARM_OCC_PWRFAIL                  =2000;     //INOP 1   Trapped Passenger- Elevator Power Failure
+    REM_ALARM_OCC_DOORCLOSE                =2001;     //INOP 2  Trapped Passenger - Hoistway Door Lock Fail
+    REM_ALARM_OCC_SLOWBRK                  =2002;     //INOP 3   Trapped Passenger- Brake/Valve Signal Fail
+    REM_ALARM_OCC_DOOROPEN                 =2003;     //INOP 4   Trapped Passenger - Car Door Signal Failure
+    REM_ALARM_OCC_INOP5                    =2004;     //INOP 5   Trapped Passenger-Car Door Open
+    REM_ALARM_OCC_RTL                      =2005;     //INOP 6   Trapped Passenger - Brake Failed To Drop
+    REM_ALARM_OCC_SAFTY                    =2006;     //INOP 7   Trapped Passenger - Safety Chain Failure
+    REM_ALARM_OCC_SAFTY_IDLE               =2007;     //INOP 8   Trapped Passenger - Safety Chain From CIS
+    REM_ALARM_OCC_INOP9                    =2008;     //INOP 9   Trapped Passenger - Detected Power Failure
+    REM_ALARM_SPARE_2009                   =2009;     //--
+    REM_ALARM_OCC_SL_FAIL                  =2010;     //Serial Link Failure Trapped Passenger
+    REM_ALARM_SPARE_2011                   =2011;     //--
+    REM_ALARM_OCC_CPS                      =2012;     //CPS Trapped Passenger - Car Parked
+    REM_ALARM_OCC_JAM                      =2013;     //Trapped Passenger - Elevator Jammed
+    REM_ALARM_OCC_MAD                      =2014;     //Multiple Alarm Bell Trapped Passenger
+    REM_ALARM_OCC_TUV                      =2015;     //Alarm Button Depression Time Limit Exceeded
+    REM_ALARM_TPA_DRIVE                    =2101;     //
+    REM_ALARM_TPA_DRIVE_ENCODER            =2102;     //
+    REM_ALARM_TPA_CONTACTOR                =2103;     //
+    REM_ALARM_TPA_POSITION_REF             =2104;     //
+    REM_ALARM_TPA_BRAKE                    =2105;     //
+    REM_ALARM_TPA_LOAD                     =2106;     //
+    REM_ALARM_TPA_DOOR                     =2107;     //
+    REM_ALARM_TPA_DOOR_ENCODER             =2108;     //
+    REM_ALARM_TPA_RESCUE_UNIT              =2109;     //
+    REM_ALARM_TPA_RESCUE_ENCODER           =2110;     //
+    REM_ALARM_TPA_SAFETY_CHAIN             =2111;     //
+    REM_ALARM_TPA_CONTROLLER               =2112;     //
+    REM_ALARM_TPA_CAR                      =2113;     //
+    REM_ALARM_TPA_RSL                      =2114;     //
+    REM_ALARM_TPA_CAN_BUS                  =2115;     //
+    REM_ALARM_TPA_SYSTEM                   =2116;     //
+    REM_ALARM_TPA_OPERATIONAL              =2117;     //
+    REM_ALARM_SPARE_3000                   =3000;     //
+    REM_ALERT_DATA_OVERFLOW                =3001;     //Performance Data Overflow
+    REM_ALERT_XDOOR_REVS                   =3002;     //Excessive Door Reversals
+    REM_ALERT_XZONING                      =3003;     //Excessive Zoning
+    REM_ALERT_XLEVELING                    =3004;     //Excessive Leveling Errors
+    REM_ALERT_XDOOR_TIME                   =3005;     //Excessive Door Close Times
+    REM_ALERT_XDOOR_LOCK                   =3006;     //Excessive Door Lock Signal Failures
+    REM_ALERT_XBRAKE_VALVE                 =3007;     //Excessive Brake/Valve Signal Failure
+    REM_ALERT_XSLOW_DOOR                   =3008;     //Excessive Car Door Signal Failures
+    REM_ALARM_SPARE_3009                   =3009;     //
+    REM_ALERT_INOP1_OCCURENCES             =3010;     //INOP Per Period - Power Failure
+    REM_ALERT_INOP2_OCCURENCES             =3011;     //INOP Per Period - Hoistway Door Lock Failure
+    REM_ALERT_INOP3_OCCURENCES             =3012;     //INOP Per Period - Slow Brake Lift
+    REM_ALERT_INOP4_OCCURENCES             =3013;     //INOP Per Period - Car Door Failure
+    REM_ALERT_INOP5_OCCURENCES             =3014;     //INOP Per Period - Mechanical Door Failure
+    REM_ALERT_INOP6_OCCURENCES             =3015;     //INOP Per Period - Brake Failed to Open
+    REM_ALERT_INOP7_OCCURENCES             =3016;     //INOP Per Period - Safety Chain Failure
+    REM_ALERT_INOP8_OCCURENCES             =3017;     //INOP Per Period - Safety Chain From Idle Car
+    REM_ALERT_INOP9_OCCURENCES             =3018;     //INOP Per Period - Power Failure-Configurable Input
+    REM_ALERT_INOP10_OCCURENCES            =3019;     //INOP Per Period - Low Speed Too Long
+    REM_ALERT_INOP11_OCCURENCES            =3020;     //INOP Per Period - Levelling INOP
+    REM_ALERT_INOP12_OCCURENCES            =3021;     //INOP Per Period - Run Without Demand
+    REM_ALERT_INOP13_OCCURENCES            =3022;     //INOP Per Period - Releveling
+    REM_ALERT_INOP14_OCCURENCES            =3023;     //INOP Per Period - Serial Link Loss of Data
+    REM_ALERT_INOP15_OCCURENCES            =3024;     //INOP Per Period - TOC Loss of Data
+    REM_ALERT_INOP16_OCCURENCES            =3025;     //INOP Per Period - Hydro Low Tank Oil
+    REM_ALERT_OUT_OF_LANDING               =3026;     //Alert Out Of Landing
+    REM_ALERT_LEVELLING_SYSTEM             =3027;     //Leveling System out of sync
+    REM_ALERT_LPU_FAILURE                  =3028;     //Leveling System Hardware Failure
+    REM_RFS_DRIVE                          =3101;     //
+    REM_RFS_DRIVE_ENCODER                  =3102;     //
+    REM_RFS_CONTACTOR                      =3103;     //
+    REM_RFS_POSITION_REF                   =3104;     //
+    REM_RFS_BRAKE                          =3105;     //
+    REM_RFS_LOAD                           =3106;     //
+    REM_RFS_DOOR                           =3107;     //
+    REM_RFS_DOOR_ENCODER                   =3108;     //
+    REM_RFS_RESCUE_UNIT                    =3109;     //
+    REM_RFS_RESCUE_ENCODER                 =3110;     //
+    REM_RFS_SAFETY_CHAIN                   =3111;     //
+    REM_RFS_CONTROLLER                     =3112;     //
+    REM_RFS_CAR                            =3113;     //
+    REM_RFS_RSL                            =3114;     //
+    REM_RFS_CAN_BUS                        =3115;     //
+    REM_RFS_SYSTEM                         =3116;     //
+    REM_RFS_OPERATIONAL                    =3117;     //
+    REM_RFS_CLEAR_DRIVE                    =3151;     //
+    REM_RFS_CLEAR_DRIVE_ENCODER            =3152;     //
+    REM_RFS_CLEAR_CONTACTOR                =3153;     //
+    REM_RFS_CLEAR_POSITION_REF             =3154;     //
+    REM_RFS_CLEAR_BRAKE                    =3155;     //
+    REM_RFS_CLEAR_LOAD                     =3156;     //
+    REM_RFS_CLEAR_DOOR                     =3157;     //
+    REM_RFS_CLEAR_DOOR_ENCODER             =3158;     //
+    REM_RFS_CLEAR_RESCUE_UNIT              =3159;     //
+    REM_RFS_CLEAR_RESCUE_ENCODER           =3160;     //
+    REM_RFS_CLEAR_SAFETY_CHAIN             =3161;     //
+    REM_RFS_CLEAR_CONTROLLER               =3162;     //
+    REM_RFS_CLEAR_CAR                      =3163;     //
+    REM_RFS_CLEAR_RSL                      =3164;     //
+    REM_RFS_CLEAR_CAN_BUS                  =3165;     //
+    REM_RFS_CLEAR_SYSTEM                   =3166;     //
+    REM_RFS_CLEAR_OPERATIONAL              =3167;     //
+    REM_ALARM_ROM_CRC                      =4000;     //Handled with an ALARM_POR_1 (Reserved for compatibility)
+    REM_ALARM_RAM_CRC                      =4001;     //Handled with an ALARM_POR_1 (Reserved for compatibility)
+    REM_ALARM_FLASH_CRC                    =4002;     //Self Health Check of Flash Memory (Sent for a device to cover a power-on un unconfigured operation
+    REM_ALARM_UNIDENTIFIED_DEVICE          =4003;     //Surplus Device on RMH bus.
+    REM_ALARM_COMM_CHECK                   =4004;     //Communication Check Alarm
+    REM_ALARM_BBU                          =4005;     //Dead Battery or No Battery
+    REM_ALARM_BAT_CONFIG_ERROR             =4006;     //Battery Configuration Error
+    REM_ALARM_BAT_LOW                      =4007;     //Low Battery
+    REM_ALARM_BAT_REPLACE                  =4008;     //Low Battery - Replace Battery
+    REM_ALARM_BAT_ON                       =4009;     //Battery Backup Active
+    REM_CLEAR_AC_RETURN                    =4010;     //A.C. Return
+    REM_CLEAR_BBU_RESTORED                 =4011;     //Battery OK
+    REM_ALERT_INSRV                        =4012;     //In Service (Generated by Service State Machine)
+    REM_ALERT_OUTSERV                      =4013;     //Out of Service (generated by Service State Machine)
+    REM_ALERT_PHONE_LOCKOUT                =4014;     //Change in Phone Number Lockout Status
+    REM_ALARM_A_TO_D_FAULT                 =4015;     //A/D diagnostic hardware failure
+    REM_ALARM_VOICE_SYNT_FAULT             =4016;     //Voice synthesis diagnostic failure
+    REM_ALARM_LOW_TOC_POWER                =4017;     //TOC power (from RMH)  diagnostic failure
+    REM_ALARM_DUPLICATE_RMH_ADDRESS        =4018;     //More than one RMH with identical RMH address
+    REM_ALARM_DI_HARDWARE_FAILURE          =4019;     //DI reported over-voltage condition but level was zero
+    REM_ALARM_DI_OVERRANGE                 =4020;     //DI reported over-range on a locked input for more than X seconds
+    REM_ALARM_STUCK_BUTTON_ON              =4021;     //Generic alarm to report button is stuck on
+    REM_CLEAR_STUCK_BUTTON_CLEARED         =4022;     //Clear to report button is no longer stuck
+    REM_MPD_VVS_TPA_VOICE_CONNECTION_FAILURE =4023;     //MPD-VVS TPA Voice Connection Failure
+    REM_ALARM_SERIAL_LINK_FAIL             =6000;     //Serial Link Failure
+    REM_ALARM_SERIAL_LINK_RESTORED         =6001;     //Serial Link Recovered
+    REM_ALARM_REM_OFFLINE                  =6002;     //RMH-to-Primary Communications Failure
+    REM_ALARM_REM_ONLINE                   =6003;     //RMH-to-Primary Communications Restored
+    REM_ALARM_TOC_HW_FAIL                  =6004;     //TOC Communication Failure
+    REM_ALARM_TOC_HW_RECOVERY              =6005;     //TOC Communication Restored
+    REM_ALARM_UNOCC_CAB                    =6006;     //Cab Light Failure
+    REM_CLEAR_UNOCC_CAB                    =6007;     //Cab Light Clear
+    REM_ALARM_GS_DS_BYPASS                 =6008;     //GS/DS Bypassed - Elevator is shut down!
+    REM_CLEAR_GS_DS_BYPASS                 =6009;     //GS/DS Bypass - Cleared Elevator can move again.
+    REM_ALARM_CONTROLLER_ALERT             =7000;     //Controller Alert ID
+    REM_ALARM_HMM_CONTROLLER_ALERT         =7001;     //HMM Controller Alert
+    REM_ALARM_HMM_CONTROLLER_ALARM         =7002;     //HMM Controller Alarm
+    REM_ALARM_HMM_EDS_CONFIGURED           =7003;     //HMM
+    REM_ALARM_OOS                          =7010;     //
+    REM_ALERT_RFS                          =7011;     //RFS alert  (GCS Controllers Only)
+    REM_ALERT_RFS_CLEAR                    =7012;     //RFS clear  (GCS Controllers Only)
+    REM_ALERT_REI_SUCCESS                  =7020;     //REI Success
+    REM_ALERT_REI_FAILED                   =7021;     //REI Failed
+    REM_ALARM_UNOCC_GDI_ON                 =8000;     //GDI Alarm State (when count set to 1)
+    REM_ALARM_UNOCC_GDI_OFF                =8001;     //GDI Alarm State Clear
+    REM_ALERT_AOT                          =8002;     //Accumulated On Time  exceedance
+    REM_ALERT_GDI_THRES                    =8003;     //Threshold exceedance
+    REM_PREDICTION_DRIVE                   =9101;     //
+    REM_PREDICTION_DRIVE_ENCODER           =9102;     //
+    REM_PREDICTION_CONTACTOR               =9103;     //
+    REM_PREDICTION_POSITION_REF            =9104;     //
+    REM_PREDICTION_BRAKE                   =9105;     //
+    REM_PREDICTION_LOAD                    =9106;     //
+    REM_PREDICTION_DOOR                    =9107;     //
+    REM_PREDICTION_DOOR_ENCODER            =9108;     //
+    REM_PREDICTION_RESCUE_UNIT             =9109;     //
+    REM_PREDICTION_RESCUE_ENCODER          =9110;     //
+    REM_PREDICTION_SAFETY_CHAIN            =9111;     //
+    REM_PREDICTION_CONTROLLER              =9112;     //
+    REM_PREDICTION_CAR                     =9113;     //
+    REM_PREDICTION_RSL                     =9114;     //
+    REM_PREDICTION_CAN_BUS                 =9115;     //
+    REM_PREDICTION_SYSTEM                  =9116;     //
+    REM_PREDICTION_OPERATIONAL             =9117;     //
+    REM_LEGACY_TRAP_PASS_SERV              =10000;    //Trapped Passenger in Service
+    REM_LEGACY_TRAP_PASS_MAINT             =10001;    //Trapped Passenger - Maintenance
+    REM_LEGACY_TRAP_PASS_SERLNK            =10002;    //Trapped Passenger - Serial Link alarm
+}
+
